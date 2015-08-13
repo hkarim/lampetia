@@ -7,11 +7,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.jdbc.JDBCClient;
-import io.vertx.ext.sql.ResultSet;
-import io.vertx.ext.sql.SQLConnection;
 
-import java.util.Collections;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 
@@ -23,61 +21,42 @@ public class VertxGroupService implements SecurityModel {
 
   public static final Logger logger = LoggerFactory.getLogger("VertxGroupService");
 
-  private JDBCClient client;
+  private QueryHelper query;
 
   public VertxGroupService(Vertx vertx) {
-    this.client = JDBCClient.create(vertx, ServiceConfiguration.dataSource);
+    JDBCClient client = JDBCClient.create(vertx, ServiceConfiguration.dataSource);
+    query = new QueryHelper(client);
   }
 
+  public void createGroup(JsonObject json, Handler<Optional<String>> handler) {
+    String id = UUID.randomUUID().toString();
+    String code = json.getString("code");
+    String owner = json.getString("owner");
+    query.u(
+      "insert into lampetia.security_group(id, owner, code) values(?, ?, ?)",
+      new JsonArray().add(id).add(owner).add(code),
+      (i) -> {
+        if (i == 1)
+          handler.handle(Optional.of(id));
+        else
+          handler.handle(Optional.<String>empty());
+      }
+    );
+  }
 
   public void findOne(String id, Handler<Optional<JsonObject>> handler) {
-    client.getConnection(result -> {
-      if (result.failed()) {
-        handler.handle(Optional.empty());
-      } else {
-        SQLConnection connection = result.result();
-        connection.queryWithParams(
-          "select * from lampetia.security_group where id = ?",
-          new JsonArray().add(id),
-          outcome -> {
-            if (outcome.failed()) {
-              logger.fatal("findOne", outcome.cause());
-              handler.handle(Optional.empty());
-            } else {
-              ResultSet resultSet = outcome.result();
-              Stream<JsonObject> groupStream =
-                resultSet.getRows().stream().map(this::mapGroup);
-              handler.handle(groupStream.findFirst());
-            }
-          }
-        );
-        connection.close();
-      }
-    });
+    query.q("select * from lampetia.security_group where id = ?", new JsonArray().add(id),
+      (rs) -> {
+        //rs.getRows().forEach(r -> logger.debug(r.encodePrettily()));
+        Stream<JsonObject> groupStream = rs.getRows().stream().map(this::mapGroup);
+        handler.handle(groupStream.findFirst());
+      });
   }
 
   public void findAll(Handler<Stream<JsonObject>> handler) {
-    client.getConnection(result -> {
-      if (result.failed()) {
-        handler.handle(Collections.<JsonObject>emptyList().stream());
-      } else {
-        SQLConnection connection = result.result();
-        connection.query(
-          "select * from lampetia.security_group",
-          outcome -> {
-            if (outcome.failed()) {
-              logger.fatal("findAll", outcome.cause());
-              handler.handle(Collections.<JsonObject>emptyList().stream());
-            } else {
-              ResultSet resultSet = outcome.result();
-              Stream<JsonObject> groupStream =
-                resultSet.getRows().stream().map(this::mapGroup);
-              handler.handle(groupStream);
-            }
-          }
-        );
-        connection.close();
-      }
+    query.q("select * from lampetia.security_group", (rs) -> {
+      Stream<JsonObject> groupStream = rs.getRows().stream().map(this::mapGroup);
+      handler.handle(groupStream);
     });
   }
 
