@@ -8,15 +8,17 @@ import io.vertx.core.Vertx;
  */
 public class SecurityService {
 
-
   public static void main(String...args) {
+
     Vertx vertx = Vertx.vertx();
-    DeploymentOptions options = new DeploymentOptions().setWorker(true);
+
+    DeploymentOptions options = new DeploymentOptions();
     vertx.deployVerticle("lampetia.examples.java.security.HttpService", options);
+
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
-        vertx.close();
+        vertx.close(result -> ServiceConfiguration.dataSource.close());
       }
     });
   }

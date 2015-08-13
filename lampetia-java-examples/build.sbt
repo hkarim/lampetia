@@ -27,3 +27,4 @@ libraryDependencies ++= Seq(
   vertxWeb,
   vertxJdbcClient,
   scalaTest)
+

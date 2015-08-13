@@ -19,7 +19,7 @@ public class HttpService extends AbstractVerticle {
 
   @Override
   public void start() {
-    GroupService service = new GroupService(vertx);
+    VertxGroupService service = new VertxGroupService(vertx);
     HttpServer server = vertx.createHttpServer();
     Router router = Router.router(vertx);
 

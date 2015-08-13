@@ -1,6 +1,5 @@
 package lampetia.examples.java.security;
 
-import com.zaxxer.hikari.HikariDataSource;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
@@ -20,40 +19,20 @@ import java.util.stream.Stream;
  * @author Hossam Karim
  */
 
-public class GroupService {
+public class VertxGroupService implements SecurityModel {
 
-  public static final Logger logger = LoggerFactory.getLogger("GroupService");
+  public static final Logger logger = LoggerFactory.getLogger("VertxGroupService");
 
   private JDBCClient client;
 
-  public GroupService(Vertx vertx) {
-    HikariDataSource ds = new HikariDataSource();
-    ds.setMaximumPoolSize(8);
-    ds.setLeakDetectionThreshold(2000);
-    ds.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
-    ds.addDataSourceProperty("serverName", "localhost");
-    ds.addDataSourceProperty("portNumber", 5432);
-    ds.addDataSourceProperty("databaseName", "nxt");
-    ds.addDataSourceProperty("user", "admin");
-    ds.addDataSourceProperty("password", "admin");
-    this.client = JDBCClient.create(vertx, ds);
+  public VertxGroupService(Vertx vertx) {
+    this.client = JDBCClient.create(vertx, ServiceConfiguration.dataSource);
   }
 
-  private JsonObject mapGroup(JsonObject json) {
-    return
-      new JsonObject()
-        .put("id", json.getString("id"))
-        .put("data",
-          new JsonObject()
-            .put("code", json.getString("code")))
-        .put("ref",
-          new JsonObject()
-            .put("owner", json.getString("owner")));
-  }
 
   public void findOne(String id, Handler<Optional<JsonObject>> handler) {
     client.getConnection(result -> {
-      if(result.failed()) {
+      if (result.failed()) {
         handler.handle(Optional.empty());
       } else {
         SQLConnection connection = result.result();
@@ -61,7 +40,7 @@ public class GroupService {
           "select * from lampetia.security_group where id = ?",
           new JsonArray().add(id),
           outcome -> {
-            if(outcome.failed()) {
+            if (outcome.failed()) {
               logger.fatal("findOne", outcome.cause());
               handler.handle(Optional.empty());
             } else {
@@ -79,7 +58,7 @@ public class GroupService {
 
   public void findAll(Handler<Stream<JsonObject>> handler) {
     client.getConnection(result -> {
-      if(result.failed()) {
+      if (result.failed()) {
         handler.handle(Collections.<JsonObject>emptyList().stream());
       } else {
         SQLConnection connection = result.result();
@@ -101,8 +80,6 @@ public class GroupService {
       }
     });
   }
-
-
 
 
 }
