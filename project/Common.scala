@@ -21,6 +21,7 @@ object Common {
     val mysqlJdbcVersion = "5.1.36"
     val h2Version = "1.4.187"
     val hikariVersion = "2.3.7"
+    val vertxVersion = "3.0.0"
     val scalaTestVersion = "2.2.4"
   }
 
@@ -52,6 +53,10 @@ object Common {
     val mysql = "mysql" % "mysql-connector-java" % mysqlJdbcVersion
     val h2 = "com.h2database" % "h2" % h2Version
     val hikari = "com.zaxxer" % "HikariCP" % hikariVersion
+    val vertxCore = "io.vertx" % "vertx-core" % vertxVersion
+    val vertxCodegen = "io.vertx" % "vertx-codegen" % vertxVersion
+    val vertxWeb = "io.vertx" % "vertx-web" % vertxVersion
+    val vertxJdbcClient = "io.vertx" % "vertx-jdbc-client" % vertxVersion
     val scalaTest = "org.scalatest" % "scalatest_2.11" % scalaTestVersion % "test"
 
   }

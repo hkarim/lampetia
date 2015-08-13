@@ -66,8 +66,9 @@ object Build extends sbt.Build {
     Project("lampetia-security-service", file("lampetia-security-service"))
       .dependsOn(`lampetia-model`, `lampetia-core`, `lampetia-postgresql`, `lampetia-security-model`)
 
-  lazy val `lampetia-security-java` =
-    Project("lampetia-security-java", file("lampetia-security-java"))
+  lazy val `lampetia-java-examples` =
+    Project("lampetia-java-examples", file("lampetia-java-examples"))
+      .dependsOn(`lampetia-model`, `lampetia-core`, `lampetia-postgresql`, `lampetia-security-model`)
 
   lazy val `lampetia-security-spray` =
     Project("lampetia-security-spray", file("lampetia-security-spray"))
@@ -84,7 +85,8 @@ object Build extends sbt.Build {
         `lampetia-mysql`,
         `lampetia-security-model`,
         `lampetia-security-service`,
-        `lampetia-security-spray`)
+        `lampetia-security-spray`,
+        `lampetia-java-examples`)
 
 
 }
